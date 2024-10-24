@@ -1,0 +1,39 @@
+import zipfile
+import os
+import pandas as pd
+import numpy as np
+
+def ordinal_encoding(df, column):
+    unique_values = df[column].unique()
+    value_map = {val: i for i, val in enumerate(unique_values)}
+    df[column] = df[column].map(value_map)
+    return df, value_map
+
+def one_hot_encoding(df, column):
+    unique_values = df[column].unique()
+    for unique_val in unique_values:
+        df[f"{column}_{unique_val}"] = np.where(df[column] == unique_val, 1, 0)
+    df = df.drop(column, axis=1)
+    return df
+
+zip_file_path = 'melb_data.csv.zip'
+
+if os.path.exists(zip_file_path):
+    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+        zip_ref.extractall()  # Extracts the contents to the current directory
+else:
+    print("Zip file not found.")
+
+data = pd.read_csv('melb_data.csv')
+print("Original Data:")
+print(data.head())
+
+data_ordinal, encoding_map = ordinal_encoding(data.copy(), 'CouncilArea')
+print("\nOrdinal Encoded 'CouncilArea':")
+print(data_ordinal[['CouncilArea']].head())
+print("Encoding Map:", encoding_map)
+
+data_onehot = one_hot_encoding(data.copy(), 'Type')
+print("\nOne-Hot Encoded 'Type':")
+print(data_onehot[['Type_h', 'Type_u', 'Type_t']].head())  # Adjust based on unique values of 'Type'
+
